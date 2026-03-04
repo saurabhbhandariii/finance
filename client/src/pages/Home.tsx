@@ -1,8 +1,11 @@
-import { ArrowRight, CheckCircle2, TrendingUp, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, TrendingUp, ShieldCheck, ShoppingCart, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useStocks } from "@/hooks/use-stocks";
+import { useStocks, useBuyStock, useSellStock } from "@/hooks/use-stocks";
+import { useUser } from "@/hooks/use-auth";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 // AI-generated Images
 import heroImg from "/images/generated_image_0.png";
@@ -16,15 +19,28 @@ import officeImg from "/images/generated_image_4.png";
 
 export function Home() {
   const { data: stocks, isLoading } = useStocks();
+  const { data: user } = useUser();
+  const buyMutation = useBuyStock();
+  const sellMutation = useSellStock();
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
+
+  const handleQuantityChange = (id: number, val: string) => {
+    const num = parseInt(val) || 0;
+    setQuantities(prev => ({ ...prev, [id]: num }));
+  };
+
+  const handleBuy = (id: number) => {
+    const qty = quantities[id] || 1;
+    buyMutation.mutate({ id, quantity: qty });
+  };
+
+  const handleSell = (id: number) => {
+    const qty = quantities[id] || 1;
+    sellMutation.mutate({ id, quantity: qty });
+  };
 
   // Fallback mock data if API is empty/loading
-  const displayStocks = stocks?.length ? stocks : [
-    { symbol: "RELIANCE", name: "Reliance Industries", price: "2954.20", change: "+12.45", changePercent: "+0.42", type: "stock" },
-    { symbol: "TCS", name: "Tata Consultancy", price: "3892.15", change: "-5.30", changePercent: "-0.14", type: "stock" },
-    { symbol: "HDFCBANK", name: "HDFC Bank", price: "1432.80", change: "+24.10", changePercent: "+1.71", type: "stock" },
-    { symbol: "INFY", name: "Infosys", price: "1678.90", change: "+8.90", changePercent: "+0.53", type: "stock" },
-    { symbol: "ICICIBANK", name: "ICICI Bank", price: "1084.50", change: "+1.20", changePercent: "+0.11", type: "stock" }
-  ];
+  const displayStocks = stocks?.length ? stocks : [];
 
   return (
     <div className="min-h-screen">
@@ -38,6 +54,12 @@ export function Home() {
                 <span className="text-primary">finance,</span><br/>
                 right here.
               </h1>
+              {user && (
+                <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 inline-block">
+                  <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-1">Your Balance</p>
+                  <p className="text-3xl font-bold">₹{parseFloat(user.balance).toLocaleString()}</p>
+                </div>
+              )}
               <p className="text-xl text-muted-foreground font-medium leading-relaxed">
                 Built for a growing India. Start investing in mutual funds, stocks, and more with zero commission.
               </p>
@@ -45,14 +67,6 @@ export function Home() {
                 <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-xl shadow-primary/25 hover:shadow-2xl transition-all">
                   Get Started <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-              </div>
-              <div className="flex items-center gap-6 pt-8 text-sm font-medium text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-primary" /> 100% Secure
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-primary" /> Zero Hidden Charges
-                </div>
               </div>
             </div>
             <div className="relative">
@@ -68,34 +82,96 @@ export function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-end mb-8">
             <div>
-              <h2 className="text-2xl font-bold">Top Stocks</h2>
-              <p className="text-muted-foreground mt-1">Market movers today</p>
+              <h2 className="text-2xl font-bold">Market Watch</h2>
+              <p className="text-muted-foreground mt-1">Live stock updates and trading</p>
             </div>
-            <Button variant="outline" className="hidden sm:flex rounded-full">
-              View All <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {isLoading && !stocks?.length ? (
-              Array(5).fill(0).map((_, i) => (
-                <Card key={i} className="rounded-2xl border-0 shadow-sm animate-pulse h-32 bg-card/50" />
+              Array(6).fill(0).map((_, i) => (
+                <Card key={i} className="rounded-2xl border-0 shadow-sm animate-pulse h-48 bg-card/50" />
               ))
             ) : (
               displayStocks.map((stock: any, i: number) => (
-                <Card key={i} className="rounded-2xl border-border/50 card-shadow overflow-hidden cursor-pointer group">
-                  <CardContent className="p-5">
-                    <div className="font-semibold truncate mb-4 group-hover:text-primary transition-colors">{stock.symbol}</div>
-                    <div className="flex items-baseline justify-between mt-auto">
-                      <span className="text-xl font-bold">₹{stock.price}</span>
+                <Card key={i} className="rounded-2xl border-border/50 card-shadow overflow-hidden group hover:border-primary/50 transition-all">
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <div className="font-bold text-lg group-hover:text-primary transition-colors">{stock.symbol}</div>
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider">{stock.name}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold">₹{stock.price}</div>
+                        <div className={`text-sm font-medium ${Number(stock.change) >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                          {stock.change > 0 ? '+' : ''}{stock.change} ({stock.changePercent}%)
+                        </div>
+                      </div>
                     </div>
-                    <div className={`text-sm mt-1 font-medium ${Number(stock.change) >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                      {stock.change} ({stock.changePercent}%)
-                    </div>
+
+                    {user && (
+                      <div className="space-y-4 pt-4 border-t border-border/50">
+                        <div className="flex gap-2">
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            placeholder="Qty" 
+                            className="w-20 rounded-xl"
+                            value={quantities[stock.id] || ""}
+                            onChange={(e) => handleQuantityChange(stock.id, e.target.value)}
+                          />
+                          <Button 
+                            className="flex-1 rounded-xl gap-2" 
+                            onClick={() => handleBuy(stock.id)}
+                            disabled={buyMutation.isPending}
+                          >
+                            <ShoppingCart className="w-4 h-4" /> Buy
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            className="flex-1 rounded-xl gap-2 border-destructive/20 text-destructive hover:bg-destructive/5" 
+                            onClick={() => handleSell(stock.id)}
+                            disabled={sellMutation.isPending}
+                          >
+                            <DollarSign className="w-4 h-4" /> Sell
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Stocks Grid */}
+      <section className="py-24 border-t border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-12">
+            <div>
+              <h2 className="text-3xl font-bold">Trending Stocks</h2>
+              <p className="text-muted-foreground mt-2">Most active stocks in the market right now</p>
+            </div>
+            <Button variant="ghost" className="text-primary font-bold hover:bg-primary/5">View All Stocks</Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayStocks.slice(0, 8).map((stock: any, i: number) => (
+              <div key={i} className="group p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all cursor-pointer">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center font-bold text-primary group-hover:scale-110 transition-transform">
+                    {stock.symbol[0]}
+                  </div>
+                  <div className={`px-2 py-1 rounded-md text-xs font-bold ${Number(stock.change) >= 0 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive'}`}>
+                    {Number(stock.change) >= 0 ? '↑' : '↓'} {Math.abs(Number(stock.changePercent))}%
+                  </div>
+                </div>
+                <div className="font-bold text-lg mb-1">{stock.symbol}</div>
+                <div className="text-sm text-muted-foreground mb-4 truncate">{stock.name}</div>
+                <div className="text-2xl font-black">₹{stock.price}</div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

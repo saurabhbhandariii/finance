@@ -58,6 +58,26 @@ export const api = {
         200: z.array(z.custom<typeof stocks.$inferSelect>()),
       }
     },
+    buy: {
+      method: 'POST' as const,
+      path: '/api/stocks/:id/buy' as const,
+      input: z.object({ quantity: z.number() }),
+      responses: {
+        200: z.object({ message: z.string(), balance: z.string() }),
+        400: errorSchemas.validation,
+        401: errorSchemas.notFound,
+      }
+    },
+    sell: {
+      method: 'POST' as const,
+      path: '/api/stocks/:id/sell' as const,
+      input: z.object({ quantity: z.number() }),
+      responses: {
+        200: z.object({ message: z.string(), balance: z.string() }),
+        400: errorSchemas.validation,
+        401: errorSchemas.notFound,
+      }
+    }
   },
   mutualFunds: {
     list: {
