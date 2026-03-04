@@ -4,14 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useStocks } from "@/hooks/use-stocks";
 
-// Static Image imports
-import heroImg from "@assets/image_1772649124262.png";
-import featuresImg from "@assets/image_1772649132092.png";
-import sipImg from "@assets/image_1772649136463.png";
-import scalperImg from "@assets/image_1772649140467.png";
-import stockTradingImg from "@assets/image_1772649147438.png";
-import testimonialsImg from "@assets/image_1772649151026.png";
-import noChargesImg from "@assets/image_1772649155006.png";
+// AI-generated Images
+import heroImg from "/images/generated_image_0.png";
+import featuresImg from "/images/generated_image_1.png";
+import sipImg from "/images/generated_image_2.png";
+import scalperImg from "/images/generated_image_2.png"; // Reusing high quality stock/phone image
+import stockTradingImg from "/images/generated_image_2.png"; 
+import testimonialsImg from "/images/generated_image_4.png"; 
+import noChargesImg from "/images/generated_image_3.png";
+import officeImg from "/images/generated_image_4.png";
 
 export function Home() {
   const { data: stocks, isLoading } = useStocks();

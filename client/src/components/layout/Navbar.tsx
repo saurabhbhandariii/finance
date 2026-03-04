@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import mfPreviewImage from "@assets/image_1772649128209.png";
+import mfPreviewImage from "/images/generated_image_1.png";
 
 export function Navbar() {
   const { data: user } = useUser();
